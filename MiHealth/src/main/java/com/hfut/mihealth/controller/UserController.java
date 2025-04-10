@@ -15,7 +15,7 @@ import com.hfut.mihealth.service.UserService;
 
 /**
  * 用户;(Users)表控制层
- * @author : http://www.chiner.pro
+ * @author : wangke
  * @date : 2025-3-25
  */
 @Api(tags = "用户对象功能接口")
