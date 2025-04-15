@@ -2,6 +2,7 @@ package com.hfut.mihealth.service;
 
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hfut.mihealth.entity.Food;
 import com.hfut.mihealth.mapper.FoodMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 食物;(Foods)表服务实现类
  * @author : wangke
@@ -19,7 +24,7 @@ import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWra
 @Service
 public class FoodServiceImpl implements FoodService {
     @Autowired
-    private FoodMapper foodsMapper;
+    private FoodMapper foodMapper;
 
     /**
      * 通过ID查询单条数据
@@ -28,7 +33,7 @@ public class FoodServiceImpl implements FoodService {
      * @return 实例对象
      */
     public Food queryById(Integer foodid){
-        return foodsMapper.selectById(foodid);
+        return foodMapper.selectById(foodid);
     }
 
     /**
@@ -56,7 +61,7 @@ public class FoodServiceImpl implements FoodService {
         }
         //2. 执行分页查询
         Page<Food> pagin = new Page<>(current , size , true);
-        IPage<Food> selectResult = foodsMapper.selectByPage(pagin , queryWrapper);
+        IPage<Food> selectResult = foodMapper.selectByPage(pagin , queryWrapper);
         pagin.setPages(selectResult.getPages());
         pagin.setTotal(selectResult.getTotal());
         pagin.setRecords(selectResult.getRecords());
@@ -71,7 +76,7 @@ public class FoodServiceImpl implements FoodService {
      * @return 实例对象
      */
     public Food insert(Food food){
-        foodsMapper.insert(food);
+        foodMapper.insert(food);
         return food;
     }
 
@@ -83,7 +88,7 @@ public class FoodServiceImpl implements FoodService {
      */
     public Food update(Food food){
         //1. 根据条件动态更新
-        LambdaUpdateChainWrapper<Food> chainWrapper = new LambdaUpdateChainWrapper<Food>(foodsMapper);
+        LambdaUpdateChainWrapper<Food> chainWrapper = new LambdaUpdateChainWrapper<Food>(foodMapper);
         if(StrUtil.isNotBlank(food.getName())){
             chainWrapper.eq(Food::getName, food.getName());
         }
@@ -114,7 +119,16 @@ public class FoodServiceImpl implements FoodService {
      * @return 是否成功
      */
     public boolean deleteById(Integer foodid){
-        int total = foodsMapper.deleteById(foodid);
+        int total = foodMapper.deleteById(foodid);
         return total > 0;
+    }
+
+    @Override
+    public Map<String, List<Food>> groupByFoodType() {
+        QueryWrapper<Food> queryWrapper = new QueryWrapper<>();
+        List<Food> foods = foodMapper.selectList(queryWrapper);
+
+        // 使用Java Streams API根据foodtype进行分组
+        return foods.stream().collect(Collectors.groupingBy(Food::getFoodtype));
     }
 }

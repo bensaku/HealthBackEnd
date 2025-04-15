@@ -1,13 +1,17 @@
 package com.hfut.mihealth.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.hfut.mihealth.interceptor.UserToken;
+import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hfut.mihealth.entity.Record;
@@ -71,6 +75,28 @@ public class RecordController {
     @PostMapping("/add")
     public ResponseEntity<Record> add(Record record){
         return ResponseEntity.ok(recordService.insert(record));
+    }
+
+    @ApiOperation("批量新增数据")
+    @UserToken
+    @PostMapping("/addBatch")
+    public ResponseEntity<Boolean> addBatch(@RequestBody List<Record> records, @RequestHeader(value = "Authorization") String token) {
+        List<Record> successfulInserts = new ArrayList<>();
+        if (token != null && token.startsWith("Bearer ")) {
+            // 移除 "Bearer " 前缀
+            token = token.substring(7);
+        }
+        Integer userId = TokenUtil.getGuestIdFromToken(token);
+
+        for (Record record : records) {
+            record.setUserid(userId);
+            // 调用现有的 add 方法
+            ResponseEntity<Record> response = add(record);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                successfulInserts.add(response.getBody());
+            }
+        }
+        return ResponseEntity.ok(true);
     }
 
     /**

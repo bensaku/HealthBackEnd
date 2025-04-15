@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 食物;(Foods)表控制层
@@ -68,7 +69,6 @@ public class FoodController {
      */
     @ApiOperation("新增数据")
     @PostMapping
-    @UserToken
     public ResponseEntity<Food> add(@RequestBody Food food){
         return ResponseEntity.ok(foodService.insert(food));
     }
@@ -95,5 +95,15 @@ public class FoodController {
     @DeleteMapping
     public ResponseEntity<Boolean> deleteById(Integer foodid){
         return ResponseEntity.ok(foodService.deleteById(foodid));
+    }
+
+    /**
+     * 食物查询（以类型分类）
+     *
+     */
+    @GetMapping("/grouped")
+    public ResponseEntity<Map<String, List<Food>>> getFoodsGroupedByType() {
+        Map<String, List<Food>> groupedFoods = foodService.groupByFoodType();
+        return ResponseEntity.ok(groupedFoods);
     }
 }

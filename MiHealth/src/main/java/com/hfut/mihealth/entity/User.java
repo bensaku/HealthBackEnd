@@ -13,7 +13,7 @@ import java.util.Date;
  * @date : 2025-4-5
  */
 @ApiModel(value = "用户",description = "")
-@TableName("Users")
+@TableName("User")
 public class User implements Serializable,Cloneable{
     /** 用户ID */
     @ApiModelProperty(name = "用户ID",notes = "")

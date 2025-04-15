@@ -14,8 +14,11 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+
+import static com.hfut.mihealth.util.TokenUtil.getGuestIdFromToken;
 
 /**
  * @author ：wangke
@@ -32,24 +35,57 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
         UserToken userToken = handlerMethod.getMethodAnnotation(UserToken.class);
         if (userToken == null) {
+            return true;
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            setResponse(response); // 假设这是设置响应为未授权的方法
             return false;
         }
-        Parameter[] parameters = handlerMethod.getMethod().getParameters();
-        for (Parameter parameter : parameters) {
-            if (parameter.getName().equals("token")) {
-                String token = request.getHeader("token");
-                if (token == null) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Invalid or missing token");
-                    return false;
-                }
-                // 这里可以根据需要进一步解析Token中的信息，比如获取用户ID等
-                //Integer userId = extractUserIdFromToken(token);
-                // 可以将userId存储在request中供后续使用
-                //request.setAttribute("userId", userId);
-                return true;
-            }
+        // 从 Authorization 头部中提取 token
+        String token = authHeader.substring(7); // 移除 "Bearer " 前缀
+
+        if (token == null || token.isEmpty()) {
+            setResponse(response);
+            return false;
         }
-        return false;
+
+        // 这里可以根据需要进一步解析与校验Token中的信息，比如获取用户ID等
+        Integer userId = getGuestIdFromToken(token);
+
+        if (userId == null) {
+            setResponse(response);
+            return false;
+        }
+
+        // 可以将userId存储在request中供后续使用
+        request.setAttribute("userId", userId);
+        return true;
+
+//        Parameter[] parameters = handlerMethod.getMethod().getParameters();
+//        for (Parameter parameter : parameters) {
+//            if (parameter.getName().equals("token")) {
+//                String token = request.getHeader("token");
+//                if (token == null) {
+//                    setResponse(response);
+//                    return false;
+//                }
+////                 这里可以根据需要进一步解析与校验Token中的信息，比如获取用户ID等
+//                Integer userId = getGuestIdFromToken(token);
+////                 可以将userId存储在request中供后续使用
+//                request.setAttribute("userId", userId);
+//                return true;
+//            }
+//        }
+//        setResponse(response);
+//        return false;
+    }
+
+    private void setResponse(HttpServletResponse response) throws IOException {
+        response.reset();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("Invalid or missing token");
     }
 }

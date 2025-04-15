@@ -3,6 +3,9 @@ package com.hfut.mihealth.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hfut.mihealth.entity.Food;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * 食物;(Foods)表服务接口
  * @author : wangke
@@ -48,4 +51,10 @@ public interface FoodService {
      * @return 是否成功
      */
     boolean deleteById(Integer foodid);
+
+    /**
+     * 查询以食物类型分类的结果
+     * @return
+     */
+    public Map<String, List<Food>> groupByFoodType();
 }

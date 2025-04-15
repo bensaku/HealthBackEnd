@@ -19,7 +19,7 @@ public class Food implements Serializable,Cloneable{
     private String name ;
     /** 卡路里 */
     @ApiModelProperty(name = "卡路里",notes = "")
-    private Double calories ;
+    private Integer calories ;
     /** 蛋白质 */
     @ApiModelProperty(name = "蛋白质",notes = "")
     private Double protein ;
@@ -56,11 +56,11 @@ public class Food implements Serializable,Cloneable{
         this.name=name;
     }
     /** 卡路里 */
-    public Double getCalories(){
+    public Integer getCalories(){
         return this.calories;
     }
     /** 卡路里 */
-    public void setCalories(Double calories){
+    public void setCalories(Integer calories){
         this.calories=calories;
     }
     /** 蛋白质 */

@@ -2,6 +2,8 @@ package com.hfut.mihealth.controller;
 
 import java.util.List;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hfut.mihealth.DTO.GuestResponse;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,7 +54,7 @@ public class UserController {
         long size = pageRequest.getPageSize();
         //2.分页查询
         /*把Mybatis的分页对象做封装转换，MP的分页对象上有一些SQL敏感信息，还是通过spring的分页模型来封装数据吧*/
-        com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> pageResult = userService.paginQuery(user, current,size);
+        Page<User> pageResult = userService.paginQuery(user, current,size);
         //3. 分页结果组装
         List<User> dataList = pageResult.getRecords();
         long total = pageResult.getTotal();
@@ -79,10 +81,13 @@ public class UserController {
      */
     @ApiOperation("新增游客")
     @PostMapping("/guest")
-    public ResponseEntity<String> addGuest(@RequestBody User users){
-        User user = userService.insert(users);
+    public ResponseEntity<GuestResponse> addGuest(){
+        User newUser = new User();;
+        newUser.setIsguest(true);
+        User user = userService.insert(newUser);
         String token = TokenUtil.generateGuestToken(user.getUserid());
-        return ResponseEntity.ok(token);
+        GuestResponse response = new GuestResponse(token, user.getUserid());
+        return ResponseEntity.ok(response);
     }
 
     /**
