@@ -3,6 +3,11 @@ package com.hfut.mihealth.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hfut.mihealth.entity.Record;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 记录;(Records)表服务接口
  * @author : http://www.chiner.pro
@@ -48,4 +53,12 @@ public interface RecordService {
      * @return 是否成功
      */
     boolean deleteById(Integer recordid);
+
+    /**
+     * 通过用户id和日期查询记录
+     * @param userId
+     * @param date
+     * @return
+     */
+    public Map<String, List<Map<String, Object>>> getDietRecords(Integer userId, LocalDate date);
 }

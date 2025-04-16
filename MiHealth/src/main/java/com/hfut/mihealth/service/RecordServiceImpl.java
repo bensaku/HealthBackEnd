@@ -9,6 +9,12 @@ import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWra
 import com.hfut.mihealth.entity.Record;
 import com.hfut.mihealth.mapper.RecordMapper;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 记录;(Records)表服务实现类
  * @author : http://www.chiner.pro
@@ -90,5 +96,13 @@ public class RecordServiceImpl implements RecordService {
     public boolean deleteById(Integer recordid){
         int total = recordMapper.deleteById(recordid);
         return total > 0;
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> getDietRecords(Integer userId, LocalDate date) {
+        List<Map<String, Object>> records = recordMapper.selectRecordsByDateAndUserId(userId, date);
+
+        return records.stream().collect(Collectors.groupingBy(
+                record -> ((String) record.get("Meals"))));
     }
 }

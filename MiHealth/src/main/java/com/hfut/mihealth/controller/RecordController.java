@@ -1,7 +1,12 @@
 package com.hfut.mihealth.controller;
 
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hfut.mihealth.interceptor.UserToken;
 import com.hfut.mihealth.util.TokenUtil;
@@ -97,6 +102,26 @@ public class RecordController {
             }
         }
         return ResponseEntity.ok(true);
+    }
+
+    /**
+     * 通过日期查询记录
+     * @param userId
+     * @param date
+     * @return
+     * @throws ParseException
+     */
+    @GetMapping("/diet")
+    public ResponseEntity<?> getDietRecords(
+            @RequestParam Integer userId,
+            @RequestParam String date) throws ParseException {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(date, formatter);
+
+        Map<String, List<Map<String, Object>>> dietRecords = recordService.getDietRecords(userId, localDate);
+
+        return ResponseEntity.ok(dietRecords);
     }
 
     /**
