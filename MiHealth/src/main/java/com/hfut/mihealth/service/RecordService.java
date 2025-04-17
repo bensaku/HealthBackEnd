@@ -1,6 +1,7 @@
 package com.hfut.mihealth.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hfut.mihealth.DTO.RecordResponse;
 import com.hfut.mihealth.entity.Record;
 
 import java.time.LocalDate;
@@ -60,5 +61,5 @@ public interface RecordService {
      * @param date
      * @return
      */
-    public Map<String, List<Map<String, Object>>> getDietRecords(Integer userId, LocalDate date);
+    public Map<String, List<RecordResponse>> getDietRecords(Integer userId, LocalDate date);
 }

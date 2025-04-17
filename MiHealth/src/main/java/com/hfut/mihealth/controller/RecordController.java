@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.hfut.mihealth.DTO.RecordResponse;
 import com.hfut.mihealth.interceptor.UserToken;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
@@ -106,20 +107,22 @@ public class RecordController {
 
     /**
      * 通过日期查询记录
-     * @param userId
      * @param date
      * @return
      * @throws ParseException
      */
     @GetMapping("/diet")
     public ResponseEntity<?> getDietRecords(
-            @RequestParam Integer userId,
-            @RequestParam String date) throws ParseException {
-
+            @RequestParam String date,@RequestHeader(value = "Authorization") String token) throws ParseException {
+        if (token != null && token.startsWith("Bearer ")) {
+            // 移除 "Bearer " 前缀
+            token = token.substring(7);
+        }
+        Integer userId = TokenUtil.getGuestIdFromToken(token);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate localDate = LocalDate.parse(date, formatter);
 
-        Map<String, List<Map<String, Object>>> dietRecords = recordService.getDietRecords(userId, localDate);
+        Map<String, List<RecordResponse>> dietRecords = recordService.getDietRecords(userId, localDate);
 
         return ResponseEntity.ok(dietRecords);
     }
