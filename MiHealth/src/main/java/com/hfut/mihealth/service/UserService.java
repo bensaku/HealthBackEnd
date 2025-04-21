@@ -48,4 +48,12 @@ public interface UserService {
      * @return 是否成功
      */
     boolean deleteById(Integer userid);
+
+    /**
+     * 检查密码
+     * @param phone 电话
+     * @param password 密码
+     * @return 是否匹配,匹配返回用户id
+     */
+    User checkPassword(String phone, String password);
 }

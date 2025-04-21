@@ -57,4 +57,10 @@ public interface FoodService {
      * @return
      */
     public Map<String, List<Food>> groupByFoodType();
+
+    /**
+     * 获取食物名称
+     * @return
+     */
+    public List<String> getFoodName();
 }

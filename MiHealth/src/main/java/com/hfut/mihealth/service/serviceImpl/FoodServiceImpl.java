@@ -1,10 +1,11 @@
-package com.hfut.mihealth.service;
+package com.hfut.mihealth.service.serviceImpl;
 
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hfut.mihealth.entity.Food;
 import com.hfut.mihealth.mapper.FoodMapper;
+import com.hfut.mihealth.service.FoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -130,5 +131,10 @@ public class FoodServiceImpl implements FoodService {
 
         // 使用Java Streams API根据foodtype进行分组
         return foods.stream().collect(Collectors.groupingBy(Food::getFoodtype));
+    }
+
+    @Override
+    public List<String> getFoodName() {
+        return foodMapper.selectName();
     }
 }

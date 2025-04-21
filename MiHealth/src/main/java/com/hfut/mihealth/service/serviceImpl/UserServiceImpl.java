@@ -1,7 +1,9 @@
-package com.hfut.mihealth.service;
+package com.hfut.mihealth.service.serviceImpl;
 
 import cn.hutool.core.util.StrUtil;
+import com.hfut.mihealth.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,6 +21,13 @@ import com.hfut.mihealth.mapper.UserMapper;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
+
+
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * 通过ID查询单条数据
@@ -47,8 +56,8 @@ public class UserServiceImpl implements UserService {
         if(StrUtil.isNotBlank(user.getPasswordhash())){
             queryWrapper.eq(User::getPasswordhash, user.getPasswordhash());
         }
-        if(StrUtil.isNotBlank(user.getEmail())){
-            queryWrapper.eq(User::getEmail, user.getEmail());
+        if(StrUtil.isNotBlank(user.getPhone())){
+            queryWrapper.eq(User::getPhone, user.getPhone());
         }
         //2. 执行分页查询
         Page<User> pagin = new Page<>(current , size , true);
@@ -86,8 +95,8 @@ public class UserServiceImpl implements UserService {
         if(StrUtil.isNotBlank(user.getPasswordhash())){
             chainWrapper.eq(User::getPasswordhash, user.getPasswordhash());
         }
-        if(StrUtil.isNotBlank(user.getEmail())){
-            chainWrapper.eq(User::getEmail, user.getEmail());
+        if(StrUtil.isNotBlank(user.getPhone())){
+            chainWrapper.eq(User::getPhone, user.getPhone());
         }
         //2. 设置主键，并更新
         chainWrapper.set(User::getUserid, user.getUserid());
@@ -109,5 +118,14 @@ public class UserServiceImpl implements UserService {
     public boolean deleteById(Integer userid){
         int total = userMapper.deleteById(userid);
         return total > 0;
+    }
+
+    @Override
+    public User checkPassword(String phone, String password) {
+        User user = userMapper.selectUserPasswordByPhone(phone);
+        if(passwordEncoder.matches(password, user.getPasswordhash())){
+            return user;
+        }
+        return null;
     }
 }

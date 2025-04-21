@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Constants;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import com.hfut.mihealth.entity.User;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 用户;(Users)表数据库访问层
@@ -23,4 +24,9 @@ public interface UserMapper extends BaseMapper<User>{
      * @return 分页对象列表
      */
     IPage<User> selectByPage(IPage<User> page , @Param(Constants.WRAPPER) Wrapper<User> wrapper);
+
+    @Select("SELECT u.*" +
+            "FROM User u" +
+            "WHERE r.Phone = #{phone}")
+    User selectUserPasswordByPhone(String phone);
 }

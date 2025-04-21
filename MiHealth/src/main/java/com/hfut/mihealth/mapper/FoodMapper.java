@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.hfut.mihealth.entity.Food;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * 食物;(Foods)表数据库访问层
@@ -23,4 +26,7 @@ public interface FoodMapper extends BaseMapper<Food>{
      * @return 分页对象列表
      */
     IPage<Food> selectByPage(IPage<Food> page , @Param(Constants.WRAPPER) Wrapper<Food> wrapper);
+
+    @Select("SELECT Name FROM Food")
+    List<String> selectName();
 }

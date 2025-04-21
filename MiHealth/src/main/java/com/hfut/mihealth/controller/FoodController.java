@@ -106,4 +106,10 @@ public class FoodController {
         Map<String, List<Food>> groupedFoods = foodService.groupByFoodType();
         return ResponseEntity.ok(groupedFoods);
     }
+
+    @GetMapping("/foodName")
+    public ResponseEntity<List<String>> getFoodName(){
+        List<String> foodName = foodService.getFoodName();
+        return ResponseEntity.ok(foodName);
+    }
 }

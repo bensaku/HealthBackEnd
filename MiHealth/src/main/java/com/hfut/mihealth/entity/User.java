@@ -25,9 +25,9 @@ public class User implements Serializable,Cloneable{
     /** 密码哈希值 */
     @ApiModelProperty(name = "密码哈希值",notes = "")
     private String passwordhash ;
-    /** 电子邮件 */
-    @ApiModelProperty(name = "电子邮件",notes = "")
-    private String email ;
+    /** 电话 */
+    @ApiModelProperty(name = "电话",notes = "")
+    private String phone ;
     /** 账户创建日期 */
     @ApiModelProperty(name = "账户创建日期",notes = "")
     private Date createdate ;
@@ -59,13 +59,13 @@ public class User implements Serializable,Cloneable{
     public void setPasswordhash(String passwordhash){
         this.passwordhash=passwordhash;
     }
-    /** 电子邮件 */
-    public String getEmail(){
-        return this.email;
+    /** 电话 */
+    public String getPhone(){
+        return this.phone;
     }
-    /** 电子邮件 */
-    public void setEmail(String email){
-        this.email=email;
+    /** 电话 */
+    public void setEmail(String phone){
+        this.phone=phone;
     }
     /** 账户创建日期 */
     public Date getCreatedate(){
