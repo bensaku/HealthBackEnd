@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.hfut.mihealth.DTO.RecordAndImageResponse;
 import com.hfut.mihealth.DTO.RecordResponse;
+import com.hfut.mihealth.entity.Image;
 import com.hfut.mihealth.interceptor.UserToken;
 import com.hfut.mihealth.service.ImageService;
 import com.hfut.mihealth.util.TokenUtil;
@@ -127,9 +129,11 @@ public class RecordController {
         LocalDate localDate = LocalDate.parse(date, formatter);
 
         Map<String, List<RecordResponse>> dietRecords = recordService.getDietRecords(userId, localDate);
-        imageService.getAllImage(userId,localDate);
+        RecordAndImageResponse recordAndImageResponse = new RecordAndImageResponse();
+        recordAndImageResponse.setDietRecords(dietRecords);
+        recordAndImageResponse.setImageList(imageService.getAllImage(userId,localDate));
 
-        return ResponseEntity.ok(dietRecords);
+        return ResponseEntity.ok(recordAndImageResponse);
     }
 
     /**
