@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.hfut.mihealth.DTO.RecordResponse;
 import com.hfut.mihealth.interceptor.UserToken;
+import com.hfut.mihealth.service.ImageService;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,6 +35,9 @@ import com.hfut.mihealth.service.RecordService;
 public class RecordController {
     @Autowired
     private RecordService recordService;
+
+    @Autowired
+    private ImageService imageService;
 
     /**
      * 通过ID查询单条数据
@@ -123,6 +127,7 @@ public class RecordController {
         LocalDate localDate = LocalDate.parse(date, formatter);
 
         Map<String, List<RecordResponse>> dietRecords = recordService.getDietRecords(userId, localDate);
+        imageService.getAllImage(userId,localDate);
 
         return ResponseEntity.ok(dietRecords);
     }

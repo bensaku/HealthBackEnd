@@ -1,5 +1,6 @@
 package com.hfut.mihealth.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -17,7 +18,7 @@ import java.util.Date;
 public class User implements Serializable,Cloneable{
     /** 用户ID */
     @ApiModelProperty(name = "用户ID",notes = "")
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Integer userid ;
     /** 用户名 */
     @ApiModelProperty(name = "用户名",notes = "")

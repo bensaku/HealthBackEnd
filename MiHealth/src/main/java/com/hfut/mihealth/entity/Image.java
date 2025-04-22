@@ -1,30 +1,30 @@
 package com.hfut.mihealth.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import jakarta.persistence.*;
 
 import java.util.Date;
 
-@Entity
-@Table(name = "image")
+
+@TableName("image")
 public class Image {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id")
+    @TableId(type = IdType.AUTO)
     private Integer imageId;
 
-    @Column(name = "user_id", nullable = false)
     private Integer userId; // 上传用户
 
-    @Column(name = "date")
-    @Temporal(TemporalType.TIMESTAMP)
+    private long timestamp;//时间戳
+
     private Date date; // 日期
 
-    @Column(name = "amount")
     private Integer amount; // 数量
 
-    @Column(name = "food_name", length = 100)
     private String foodName;
+
+    private Boolean completed;
 
     // Getters and Setters
 
@@ -42,6 +42,14 @@ public class Image {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public Date getDate() {
@@ -66,5 +74,13 @@ public class Image {
 
     public void setFoodName(String foodName) {
         this.foodName = foodName;
+    }
+
+    public Boolean getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 }

@@ -2,17 +2,13 @@ package com.hfut.mihealth.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hfut.mihealth.DTO.Inputs;
-import com.hfut.mihealth.DTO.Pic;
-import com.hfut.mihealth.DTO.WorkflowRequest;
+import com.hfut.mihealth.DTO.*;
 import com.hfut.mihealth.entity.Image;
 import com.hfut.mihealth.interceptor.UserToken;
 import com.hfut.mihealth.service.ImageService;
 import com.hfut.mihealth.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -25,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +35,29 @@ public class ImageUploadController {
         this.webClient = webClient;
     }
 
+
     @Autowired
     private ImageService imageService;
+
+    @PostMapping("/updateAIData")
+    public ResponseEntity<String> updateAIData(@RequestParam("foodName") String paramFoodName,
+                                               @RequestParam("amount") int paramAmount,
+                                               @RequestParam("imageId") int imageId) {
+        if (paramFoodName == null) {
+            //AI识别出错了
+            paramFoodName = "bread";
+        }
+        if (paramAmount <= 10) {
+            paramAmount = 100;
+        }
+        String foodName = imageService.doTranslate(paramFoodName);
+
+        // AI识别后更新数据库
+        if (foodName != null) {
+            imageService.updateImage(imageId,foodName, paramAmount);
+        }
+        return ResponseEntity.ok("updateAIData");
+    }
 
 
     @PostMapping("/upload")
@@ -50,26 +67,21 @@ public class ImageUploadController {
             return ResponseEntity.badRequest().body("Failed to upload, the selected file is empty.");
         }
         if (token != null && token.startsWith("Bearer ")) {
-            // 移除 "Bearer " 前缀
             token = token.substring(7);
         }
         Integer userId = TokenUtil.getGuestIdFromToken(token);
-        // 使用时间戳和userid的一部分来确保唯一性，生成新的文件名称
+        //使用时间戳和userid来确保唯一性，生成新的文件名称
         long timestamp = Instant.now().toEpochMilli();
-        String uniqueId = userId.toString().replace("-", "").substring(0,8);
-        String newFileName = timestamp + "-" + uniqueId;
+        String newFileName = timestamp + "_" + userId + ".jpg";
         // 保存文件逻辑
         try {
             byte[] bytes = image.getBytes();
-            //图片名称逻辑优化
-            Path path = Paths.get(UPLOAD_DIR + image.getOriginalFilename());
+            Path path = Paths.get(UPLOAD_DIR + newFileName);
             Files.write(path, bytes);
 
             // 在这里可以调用Service层的方法将文件信息保存到数据库中
-            saveFileInfoToDatabase(image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
-
-            doAIWorkflow();
-
+            Image image1 = saveFileInfoToDatabase(timestamp, userId);
+            doAIWorkflow(image1.getImageId(),newFileName);
             return ResponseEntity.ok("File uploaded successfully: " + image.getOriginalFilename());
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,25 +89,25 @@ public class ImageUploadController {
         }
     }
 
-
-    private void saveFileInfoToDatabase(String fileName, long fileSize, LocalDateTime uploadTime) {
+    private Image saveFileInfoToDatabase(long timestamp, Integer userId) {
         // 保存文件信息到数据库的方法
-        // todo目前只是一个占位符方法
         Image image = new Image();
-        imageService.insertImage(image);
-
+        image.setTimestamp(timestamp);
+        image.setDate(new Date());
+        image.setUserId(userId);
+        return imageService.insertImage(image);
     }
 
-
-    public void doAIWorkflow() throws JsonProcessingException {
+    public void doAIWorkflow(Integer imageId, String newFileName) throws JsonProcessingException {
         // 创建请求体对象
         Pic pic = new Pic();
         pic.setType("image");
         pic.setTransfer_method("remote_url");
-        pic.setUrl("http://192.168.1.102:8000/images/photo.jpg");
+        pic.setUrl("http://192.168.1.102:8000/images/"+newFileName);
 
         Inputs inputs = new Inputs();
         inputs.setPic(pic);
+        inputs.setImageId(imageId);
 
         WorkflowRequest request = new WorkflowRequest();
         request.setInputs(inputs);

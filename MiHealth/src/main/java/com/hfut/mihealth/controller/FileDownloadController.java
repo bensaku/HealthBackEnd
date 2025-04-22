@@ -20,9 +20,6 @@ import java.nio.file.Paths;
 
 @Controller
 public class FileDownloadController {
-
-
-
     private static final String UPLOAD_DIR = "/Users/wangke/myFile/uploads/";
 
     @GetMapping("/images/{filename}")
