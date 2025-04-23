@@ -6,13 +6,21 @@ import java.util.List;
 import java.util.Map;
 
 public class RecordAndImageResponse {
-    Map<String, List<RecordResponse>> dietRecords;
-    List<Image> imageList;
+    Map<String, List<RecordResponse>> record;
+    List<Image> image;
 
-    public void setDietRecords(Map<String, List<RecordResponse>> dietRecords) {
-        this.dietRecords = dietRecords;
+    public void setRecord(Map<String, List<RecordResponse>> dietRecords) {
+        this.record = dietRecords;
     }
-    public void setImageList(List<Image> imageList) {
-        this.imageList = imageList;
+    public void setImage(List<Image> imageList) {
+        this.image = imageList;
+    }
+
+    public Map<String, List<RecordResponse>> getRecord() {
+        return record;
+    }
+
+    public List<Image> getImage() {
+        return image;
     }
 }

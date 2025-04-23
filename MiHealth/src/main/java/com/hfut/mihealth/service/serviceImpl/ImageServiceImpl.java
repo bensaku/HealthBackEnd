@@ -50,6 +50,7 @@ public class ImageServiceImpl implements ImageService {
         Image updateImage = new Image();
         updateImage.setFoodName(name);   // 假设setName方法存在
         updateImage.setAmount(amount);  // 假设setAmount方法存在
+        updateImage.setCompleted(true);
 
         try {
             // 执行更新操作

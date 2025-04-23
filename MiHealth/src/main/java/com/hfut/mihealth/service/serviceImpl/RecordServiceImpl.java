@@ -12,8 +12,10 @@ import com.hfut.mihealth.entity.Record;
 import com.hfut.mihealth.mapper.RecordMapper;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +30,9 @@ import java.util.stream.Collectors;
 public class RecordServiceImpl implements RecordService {
     @Autowired
     private RecordMapper recordMapper;
+
+    @Autowired
+    private UserFoodRatingServiceImpl userFoodRatingService;
 
     /**
      * 通过ID查询单条数据
@@ -68,6 +73,7 @@ public class RecordServiceImpl implements RecordService {
      */
     public Record insert(Record record) {
         recordMapper.insert(record);
+        userFoodRatingService.incrementCount(record.getUserid(),record.getFoodid());
         return record;
     }
 
@@ -125,6 +131,59 @@ public class RecordServiceImpl implements RecordService {
         // 根据 "Meals" 字段对 RecordResponse 对象进行分组
         return recordResponses.stream().collect(Collectors.groupingBy(RecordResponse::getMeals));
     }
+
+    /**
+     * 获取特定日期所在周的营养成分总和
+     */
+    public Map<LocalDate, Map<String, Double>> getWeekRecords(Integer userId, LocalDate date) {
+        // 获取一周的开始和结束日期（假设一周从星期一开始）
+        LocalDate startOfWeek = date.with(DayOfWeek.MONDAY);
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+        // 创建一个Map用于存储一周内每天的营养成分总和
+        Map<LocalDate, Map<String, Double>> weekNutrientTotals = new HashMap<>();
+
+        // 遍历一周中的每一天
+        for (LocalDate day = startOfWeek; !day.isAfter(endOfWeek); day = day.plusDays(1)) {
+            // 计算当天的营养成分总和
+            Map<String, Double> dailyTotals = calculateNutrientsTotals(userId, day);
+            // 将结果存入map中
+            weekNutrientTotals.put(day, dailyTotals);
+        }
+
+        return weekNutrientTotals;
+    }
+
+    /**
+     * 新增方法：计算特定日期的营养成分总和
+     */
+    public Map<String, Double> calculateNutrientsTotals(Integer userId, LocalDate date) {
+        // 获取原始记录
+        List<Map<String, Object>> records = recordMapper.selectRecordsByDateAndUserId(userId, date);
+
+        // 计算营养成分的总和
+        double totalCalories = 0;
+        double totalProtein = 0;
+        double totalCarbs = 0;
+        double totalFat = 0;
+
+        for (Map<String, Object> record : records) {
+            totalCalories += convertToIntegerWithCheck(record.get("calories"));
+            totalProtein += convertBigDecimalToDouble(record.get("protein"));
+            totalCarbs += convertBigDecimalToDouble(record.get("carbs"));
+            totalFat += convertBigDecimalToDouble(record.get("fat"));
+        }
+
+        // 返回结果
+        Map<String, Double> result = new HashMap<>();
+        result.put("calories", (double) totalCalories);
+        result.put("protein", totalProtein);
+        result.put("carbs", totalCarbs);
+        result.put("fat", totalFat);
+
+        return result;
+    }
+
     private double convertBigDecimalToDouble(Object value) {
         if (value instanceof BigDecimal) {
             return ((BigDecimal) value).doubleValue();

@@ -11,8 +11,11 @@ import java.util.Map;
 import com.hfut.mihealth.DTO.RecordAndImageResponse;
 import com.hfut.mihealth.DTO.RecordResponse;
 import com.hfut.mihealth.entity.Image;
+import com.hfut.mihealth.entity.UserFoodRating;
 import com.hfut.mihealth.interceptor.UserToken;
 import com.hfut.mihealth.service.ImageService;
+import com.hfut.mihealth.service.UserFoodRatingService;
+import com.hfut.mihealth.service.serviceImpl.FoodRecommendService;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,6 +31,7 @@ import com.hfut.mihealth.service.RecordService;
 
 /**
  * 记录;(Records)表控制层
+ *
  * @author : wangke
  * @date : 2025-4-2
  */
@@ -41,6 +45,12 @@ public class RecordController {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private UserFoodRatingService userFoodRatingService;
+
+    @Autowired
+    private FoodRecommendService foodRecommendService;
+
     /**
      * 通过ID查询单条数据
      *
@@ -49,30 +59,30 @@ public class RecordController {
      */
     @ApiOperation("通过ID查询单条数据")
     @GetMapping("{recordid}")
-    public ResponseEntity<Record> queryById(Integer recordid){
+    public ResponseEntity<Record> queryById(Integer recordid) {
         return ResponseEntity.ok(recordService.queryById(recordid));
     }
 
     /**
      * 分页查询
      *
-     * @param record 筛选条件
+     * @param record      筛选条件
      * @param pageRequest 分页对象
      * @return 查询结果
      */
     @ApiOperation("分页查询")
     @GetMapping
-    public ResponseEntity<PageImpl<Record>> paginQuery(Record record, PageRequest pageRequest){
+    public ResponseEntity<PageImpl<Record>> paginQuery(Record record, PageRequest pageRequest) {
         //1.分页参数
         long current = pageRequest.getPageNumber();
         long size = pageRequest.getPageSize();
         //2.分页查询
         /*把Mybatis的分页对象做封装转换，MP的分页对象上有一些SQL敏感信息，还是通过spring的分页模型来封装数据吧*/
-        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Record> pageResult = recordService.paginQuery(record, current,size);
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Record> pageResult = recordService.paginQuery(record, current, size);
         //3. 分页结果组装
         List<Record> dataList = pageResult.getRecords();
         long total = pageResult.getTotal();
-        PageImpl<Record> retPage = new PageImpl<Record>(dataList,pageRequest,total);
+        PageImpl<Record> retPage = new PageImpl<Record>(dataList, pageRequest, total);
         return ResponseEntity.ok(retPage);
     }
 
@@ -85,7 +95,7 @@ public class RecordController {
     @ApiOperation("新增数据")
     @UserToken
     @PostMapping("/add")
-    public ResponseEntity<Record> add(Record record){
+    public ResponseEntity<Record> add(Record record) {
         return ResponseEntity.ok(recordService.insert(record));
     }
 
@@ -113,15 +123,15 @@ public class RecordController {
 
     /**
      * 通过日期查询记录
+     *
      * @param date
      * @return
      * @throws ParseException
      */
     @GetMapping("/diet")
-    public ResponseEntity<?> getDietRecords(
-            @RequestParam String date,@RequestHeader(value = "Authorization") String token) throws ParseException {
+    public ResponseEntity<RecordAndImageResponse> getDietRecords(
+            @RequestParam String date, @RequestHeader(value = "Authorization") String token) throws ParseException {
         if (token != null && token.startsWith("Bearer ")) {
-            // 移除 "Bearer " 前缀
             token = token.substring(7);
         }
         Integer userId = TokenUtil.getGuestIdFromToken(token);
@@ -130,10 +140,31 @@ public class RecordController {
 
         Map<String, List<RecordResponse>> dietRecords = recordService.getDietRecords(userId, localDate);
         RecordAndImageResponse recordAndImageResponse = new RecordAndImageResponse();
-        recordAndImageResponse.setDietRecords(dietRecords);
-        recordAndImageResponse.setImageList(imageService.getAllImage(userId,localDate));
+        recordAndImageResponse.setRecord(dietRecords);
+        recordAndImageResponse.setImage(imageService.getAllImage(userId, localDate));
 
         return ResponseEntity.ok(recordAndImageResponse);
+    }
+
+    @GetMapping("/week")
+    public ResponseEntity<Map<LocalDate, Map<String, Double>>> getWeekRecords(
+            @RequestParam String date, @RequestHeader(value = "Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Integer userId = TokenUtil.getGuestIdFromToken(token);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(date, formatter);
+        return ResponseEntity.ok(recordService.getWeekRecords(userId, localDate));
+    }
+
+    @GetMapping("/recommend")
+    public List<Integer> getRecommendations(@RequestParam Integer userId, @RequestParam(defaultValue = "5") int topN) {
+        List<UserFoodRating> allRecords = userFoodRatingService.getAllRecords();
+        Map<Integer, Map<Integer, Double>> userItemMatrix = foodRecommendService.buildUserItemMatrix(allRecords);
+        Map<Integer, Map<Integer, Double>> similarityMatrix = foodRecommendService.calculateSimilarity(userItemMatrix);
+
+        return foodRecommendService.recommend(userId, userItemMatrix, similarityMatrix, topN);
     }
 
     /**
@@ -144,7 +175,7 @@ public class RecordController {
      */
     @ApiOperation("更新数据")
     @PutMapping
-    public ResponseEntity<Record> edit(Record record){
+    public ResponseEntity<Record> edit(Record record) {
         return ResponseEntity.ok(recordService.update(record));
     }
 
@@ -156,7 +187,7 @@ public class RecordController {
      */
     @ApiOperation("通过主键删除数据")
     @DeleteMapping
-    public ResponseEntity<Boolean> deleteById(Integer recordid){
+    public ResponseEntity<Boolean> deleteById(Integer recordid) {
         return ResponseEntity.ok(recordService.deleteById(recordid));
     }
 }

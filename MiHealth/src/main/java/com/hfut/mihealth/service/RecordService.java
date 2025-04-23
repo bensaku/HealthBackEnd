@@ -62,4 +62,12 @@ public interface RecordService {
      * @return
      */
     public Map<String, List<RecordResponse>> getDietRecords(Integer userId, LocalDate date);
+
+    /**
+     * 获得一周的饮食摄入统计
+     * @param userId
+     * @param date
+     * @return
+     */
+    public Map<LocalDate, Map<String, Double>> getWeekRecords(Integer userId, LocalDate date);
 }
