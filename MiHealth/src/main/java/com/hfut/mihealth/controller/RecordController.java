@@ -143,6 +143,7 @@ public class RecordController {
         recordAndImageResponse.setRecord(dietRecords);
         recordAndImageResponse.setImage(imageService.getAllImage(userId, localDate));
 
+        imageService.updateImage(1631625222,"炸鸡腿",100);
         return ResponseEntity.ok(recordAndImageResponse);
     }
 

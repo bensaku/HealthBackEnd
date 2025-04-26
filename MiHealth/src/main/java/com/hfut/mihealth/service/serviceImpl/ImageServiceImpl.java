@@ -41,32 +41,31 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public Image updateImage(int imageID, String name, int amount) {
-        // 创建条件构造器
-        QueryWrapper<Image> queryWrapper = new QueryWrapper<>();
-        // 设置更新条件
-        queryWrapper.eq("image_id", imageID);
+        // 从数据库中获取当前记录
+        Image existingImage = imageMapper.selectById(imageID);
 
-        // 创建要更新的数据实体
-        Image updateImage = new Image();
-        updateImage.setFoodName(name);   // 假设setName方法存在
-        updateImage.setAmount(amount);  // 假设setAmount方法存在
-        updateImage.setCompleted(true);
+        if (existingImage == null) {
+            throw new RuntimeException("Image not found");
+        }
+
+        // 更新需要修改的字段
+        existingImage.setFoodName(name);   // 更新食品名称
+        existingImage.setAmount(amount);   // 更新数量
+        existingImage.setCompleted(true);  // 标记为已完成
 
         try {
             // 执行更新操作
-            int updateResult = imageMapper.update(updateImage, queryWrapper);
+            int updateResult = imageMapper.updateById(existingImage);
 
             if (updateResult > 0) {
-                // 更新成功，获取更新后的数据
-                return getImageById(imageID);  // 假设你有一个通过id获取Image的方法
+                return existingImage;
             } else {
-                // 更新失败
                 return null;
             }
         } catch (Exception e) {
-            // 处理异常情况
+            // 处理异常
             e.printStackTrace();
-            return null;
+            throw new RuntimeException("Failed to update image");
         }
     }
 
