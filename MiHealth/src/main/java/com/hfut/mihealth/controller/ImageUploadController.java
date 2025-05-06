@@ -1,6 +1,8 @@
 package com.hfut.mihealth.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hfut.mihealth.DTO.*;
 import com.hfut.mihealth.entity.Image;
@@ -40,22 +42,34 @@ public class ImageUploadController {
     private ImageService imageService;
 
     @PostMapping("/updateAIData")
-    public ResponseEntity<String> updateAIData(@RequestParam("foodName") String paramFoodName,
-                                               @RequestParam("amount") int paramAmount,
+    public ResponseEntity<String> updateAIData(@RequestParam("foodInfo") String foodInfo,
                                                @RequestParam("imageId") int imageId) {
-        if (paramFoodName == null) {
+        if (foodInfo == null) {
             //AI识别出错了
-            paramFoodName = "bread";
+            foodInfo = "bread";
         }
-        if (paramAmount <= 10) {
-            paramAmount = 100;
-        }
-        String foodName = imageService.doTranslate(paramFoodName);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String foodName = null;
+        String amount = null;
+        String calories = null;
+        try {
+            // 将JSON字符串映射到Java对象
+            JsonNode rootNode = objectMapper.readTree(foodInfo);
 
-        // AI识别后更新数据库
-        if (foodName != null) {
-            imageService.updateImage(imageId,foodName, paramAmount);
+            // 提取变量，如果键不存在则返回null
+            foodName = rootNode.path("foodname").asText();
+            amount = rootNode.path("amount").asText();
+            calories = rootNode.path("calories").asText();
+
+            System.out.println("食品名称：" + foodName + "，数量：" + amount + "，卡路里：" + calories);
+
+        } catch (JsonMappingException e) {
+            System.out.println("JSON映射错误，请检查JSON结构是否正确。");
+        } catch (JsonProcessingException e) {
+            System.out.println("JSON处理错误，请确认输入为有效的JSON格式。");
         }
+        // AI识别后更新数据库
+        imageService.updateImage(imageId, foodName, amount, calories);
         return ResponseEntity.ok("updateAIData");
     }
 

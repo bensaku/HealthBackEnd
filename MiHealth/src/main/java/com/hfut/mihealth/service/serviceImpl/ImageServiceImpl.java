@@ -37,18 +37,20 @@ public class ImageServiceImpl implements ImageService {
         return image;
     }
 
+
     @Override
-    public Image updateImage(int imageID, String name, int amount) {
+    public Image updateImage(int imageId, String foodName, String amount, String calories) {
         // 从数据库中获取当前记录
-        Image existingImage = imageMapper.selectById(imageID);
+        Image existingImage = imageMapper.selectById(imageId);
 
         if (existingImage == null) {
             throw new RuntimeException("Image not found");
         }
 
         // 更新需要修改的字段
-        existingImage.setFoodName(name);   // 更新食品名称
-        existingImage.setAmount(amount);   // 更新数量
+        existingImage.setFoodName(foodName);   // 更新食品名称
+        existingImage.setAmount(Integer.valueOf(amount));   // 更新数量
+        existingImage.setCalories(Integer.valueOf(calories));
         existingImage.setCompleted(true);  // 标记为已完成
 
         try {

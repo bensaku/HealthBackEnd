@@ -21,6 +21,8 @@ public class Image {
 
     private Integer amount; // 数量
 
+    private Integer calories;
+
     private String foodName;
 
     private Boolean completed;
@@ -81,5 +83,13 @@ public class Image {
 
     public void setCompleted(Boolean completed) {
         this.completed = completed;
+    }
+
+    public Integer getCalories() {
+        return calories;
+    }
+
+    public void setCalories(Integer calories) {
+        this.calories = calories;
     }
 }
