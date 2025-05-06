@@ -117,7 +117,7 @@ public class ImageUploadController {
         Pic pic = new Pic();
         pic.setType("image");
         pic.setTransfer_method("remote_url");
-        pic.setUrl("http://192.168.1.102:8000/images/"+newFileName);
+        pic.setUrl("http://host.docker.internal:8000/images/"+newFileName);
 
         Inputs inputs = new Inputs();
         inputs.setPic(pic);
