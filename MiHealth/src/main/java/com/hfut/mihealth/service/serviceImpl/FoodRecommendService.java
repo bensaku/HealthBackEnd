@@ -81,7 +81,6 @@ public class FoodRecommendService {
 
             for (Map.Entry<Integer, Double> simEntry : similarities.entrySet()) {
                 Integer similarItem = simEntry.getKey();
-                //if (userRatings.containsKey(similarItem)) continue; // 用户已选择过的食物不推荐
 
                 recommendations.merge(similarItem, rating * simEntry.getValue(), Double::sum);
             }

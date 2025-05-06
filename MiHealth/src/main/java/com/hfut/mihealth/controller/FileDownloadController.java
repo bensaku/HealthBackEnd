@@ -1,8 +1,5 @@
 package com.hfut.mihealth.controller;
 
-import com.hfut.mihealth.service.FoodService;
-import com.hfut.mihealth.service.ImageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
