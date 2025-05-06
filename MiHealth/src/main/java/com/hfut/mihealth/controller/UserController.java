@@ -1,5 +1,6 @@
 package com.hfut.mihealth.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -7,8 +8,9 @@ import java.util.Base64;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.hfut.mihealth.DTO.GuestResponse;
-import com.hfut.mihealth.DTO.loginRequest;
+import com.hfut.mihealth.DTO.*;
+import com.hfut.mihealth.interceptor.UserToken;
+import com.hfut.mihealth.service.serviceImpl.PasswordService;
 import com.hfut.mihealth.util.RsaKeyPairGenerator;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
@@ -38,6 +40,9 @@ import javax.crypto.NoSuchPaddingException;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PasswordService passwordService;
 
     private final RsaKeyPairGenerator rsaKeyPairGenerator;
 
@@ -97,7 +102,7 @@ public class UserController {
      */
     @ApiOperation("新增游客(游客登陆)")
     @PostMapping("/guest")
-    public ResponseEntity<GuestResponse> addGuest(){
+    public ResponseEntity<GuestResponse> addGuest() {
         User newUser = new User();
         newUser.setIsguest(true);
         User user = userService.insert(newUser);
@@ -113,33 +118,71 @@ public class UserController {
      */
     @ApiOperation("用户登陆")
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody loginRequest loginRequest) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         //用户名（邮箱）与密码校验
         PrivateKey privateKey = rsaKeyPairGenerator.getPrivateKey();
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] decodedBytes = Base64.getDecoder().decode(loginRequest.getPassword());
         byte[] decryptedBytes = cipher.doFinal(decodedBytes);
-        String password = new String(decryptedBytes);
-
+        String password = new String(decryptedBytes, StandardCharsets.UTF_8);
         //进行电话和密码的匹配
-        User user = userService.checkPassword(loginRequest.getPhone(),password);
+        User user = userService.checkPassword(loginRequest.getPhone(), password);
         if (user != null) {
-            return ResponseEntity.ok(TokenUtil.generateGuestToken(user.getUserid()));
+            String token = TokenUtil.generateGuestToken(user.getUserid());
+            LoginResponse loginResponse = new LoginResponse();
+            loginResponse.setToken(token);
+            loginResponse.setUsername(user.getUsername());
+            loginResponse.setSuccess("success");
+            return ResponseEntity.ok(loginResponse);
         }
-        return ResponseEntity.badRequest().build();
+        LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setSuccess("failure");
+        return ResponseEntity.ok(loginResponse);
     }
 
     /**
      * 更新数据,如果进行注册就将游客数据更新为用户的
      *
-     * @param user 实例对象
+     * @param registerRequest 实例对象
      * @return 实例对象
      */
     @ApiOperation("更新数据/注册")
-    @PutMapping
-    public ResponseEntity<User> edit(User user) {
-        return ResponseEntity.ok(userService.update(user));
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest
+            , @RequestHeader(value = "Authorization") String token) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        PrivateKey privateKey = rsaKeyPairGenerator.getPrivateKey();
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] decodedBytes = Base64.getDecoder().decode(registerRequest.getPassword());
+        byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+        String decryptedPassword = new String(decryptedBytes, StandardCharsets.UTF_8);
+        String hashedPassword = passwordService.hashPassword(decryptedPassword);
+        Integer userId = TokenUtil.getGuestIdFromToken(token);
+        User user = userService.queryById(userId);
+        User newUser = null;
+        if (user.getIsguest()) {
+            //如果当前是游客状态，把游客转为正式用户
+            user.setUsername(registerRequest.getUsername());
+            user.setPasswordhash(hashedPassword); // 密码加密
+            user.setPhone(registerRequest.getPhone());
+            user.setIsguest(false); // 标记为正式用户
+            newUser = userService.update(user);
+        } else {
+            //否则注册一个全新用户
+            User createdUser = new User();
+            createdUser.setIsguest(false);
+            createdUser.setUsername(registerRequest.getUsername());
+            createdUser.setPasswordhash(hashedPassword); // 密码加密
+            createdUser.setPhone(registerRequest.getPhone());
+            newUser = userService.insert(createdUser);
+        }
+        RegisterResponse response = new RegisterResponse();
+        response.setSuccess("success");
+        return ResponseEntity.ok(response);
     }
 
     /**

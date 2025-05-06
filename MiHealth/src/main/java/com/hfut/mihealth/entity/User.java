@@ -65,7 +65,7 @@ public class User implements Serializable,Cloneable{
         return this.phone;
     }
     /** 电话 */
-    public void setEmail(String phone){
+    public void setPhone(String phone){
         this.phone=phone;
     }
     /** 账户创建日期 */

@@ -1,11 +1,14 @@
 package com.hfut.mihealth.controller;
 
 import com.hfut.mihealth.util.RsaKeyPairGenerator;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class PublicKeyController {
@@ -17,8 +20,13 @@ public class PublicKeyController {
     }
 
     @GetMapping("/api/public-key")
-    public String getPublicKey() {
+    public ResponseEntity<Map<String, String>> getPublicKey() {
         PublicKey publicKey = rsaKeyPairGenerator.getPublicKey();
-        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        String encodedKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("publicKey", encodedKey);
+
+        return ResponseEntity.ok(response);
     }
 }

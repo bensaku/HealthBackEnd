@@ -25,8 +25,8 @@ public interface UserMapper extends BaseMapper<User>{
      */
     IPage<User> selectByPage(IPage<User> page , @Param(Constants.WRAPPER) Wrapper<User> wrapper);
 
-    @Select("SELECT u.*" +
-            "FROM User u" +
-            "WHERE r.Phone = #{phone}")
+    @Select("SELECT u.* " +
+            "FROM User u " +
+            "WHERE u.Phone = #{phone}")
     User selectUserPasswordByPhone(String phone);
 }

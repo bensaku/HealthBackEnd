@@ -137,4 +137,9 @@ public class FoodServiceImpl implements FoodService {
     public List<String> getFoodName() {
         return foodMapper.selectName();
     }
+
+    @Override
+    public String getFoodNameById(Integer integer) {
+        return foodMapper.selectById(integer).getName();
+    }
 }

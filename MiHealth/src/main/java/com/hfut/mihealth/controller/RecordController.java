@@ -2,7 +2,6 @@ package com.hfut.mihealth.controller;
 
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,24 +9,21 @@ import java.util.Map;
 
 import com.hfut.mihealth.DTO.RecordAndImageResponse;
 import com.hfut.mihealth.DTO.RecordResponse;
-import com.hfut.mihealth.entity.Image;
+import com.hfut.mihealth.DTO.WeekReportResponse;
 import com.hfut.mihealth.entity.UserFoodRating;
+import com.hfut.mihealth.entity.WeekReport;
 import com.hfut.mihealth.interceptor.UserToken;
-import com.hfut.mihealth.service.ImageService;
-import com.hfut.mihealth.service.UserFoodRatingService;
+import com.hfut.mihealth.service.*;
 import com.hfut.mihealth.service.serviceImpl.FoodRecommendService;
 import com.hfut.mihealth.util.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hfut.mihealth.entity.Record;
-import com.hfut.mihealth.service.RecordService;
 
 /**
  * 记录;(Records)表控制层
@@ -50,6 +46,9 @@ public class RecordController {
 
     @Autowired
     private FoodRecommendService foodRecommendService;
+
+    @Autowired
+    private WeekReportService weekReportService;
 
     /**
      * 通过ID查询单条数据
@@ -143,13 +142,13 @@ public class RecordController {
         recordAndImageResponse.setRecord(dietRecords);
         recordAndImageResponse.setImage(imageService.getAllImage(userId, localDate));
 
-        imageService.updateImage(1631625222,"炸鸡腿",100);
         return ResponseEntity.ok(recordAndImageResponse);
     }
 
     @GetMapping("/week")
+    @UserToken
     public ResponseEntity<Map<LocalDate, Map<String, Double>>> getWeekRecords(
-            @RequestParam String date, @RequestHeader(value = "Authorization") String token) {
+            @RequestParam("date") String date, @RequestHeader(value = "Authorization") String token) {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -159,12 +158,49 @@ public class RecordController {
         return ResponseEntity.ok(recordService.getWeekRecords(userId, localDate));
     }
 
+    @GetMapping("/weekReport")
+    @UserToken
+    public ResponseEntity<WeekReportResponse> getWeekReport(
+            @RequestParam("date") String date, @RequestHeader(value = "Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Integer userId = TokenUtil.getGuestIdFromToken(token);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(date, formatter);
+
+        WeekReport weekReport = weekReportService.getOrCreateWeekReport(userId, localDate);
+        //private String status; // 可选值："pending", "generating", "completed"
+
+        WeekReportResponse weekReportResponse = new WeekReportResponse();
+        if (weekReport == null) {
+            weekReportResponse.setIsCompleted(false);
+            weekReportResponse.setReportContent("正在生成周报");
+        }
+        if (weekReport.getStatus().equals("completed")) {
+            weekReportResponse.setReportContent(weekReport.getReportContent());
+            weekReportResponse.setIsCompleted(true);
+            return ResponseEntity.ok(weekReportResponse);
+        } else {
+            weekReportResponse.setIsCompleted(false);
+            weekReportResponse.setReportContent("正在生成周报");
+            return ResponseEntity.ok(weekReportResponse);
+        }
+    }
+
+    @PostMapping("/updateWeekReport")
+    public ResponseEntity<Object> updateWeekReport(@RequestParam("reportId") Long reportId,
+                                                   @RequestParam("content") String content) {
+        String status = "completed";
+        weekReportService.updateReportWithContent(reportId, content, status);
+        return ResponseEntity.ok(null);
+    }
+
     @GetMapping("/recommend")
     public List<Integer> getRecommendations(@RequestParam Integer userId, @RequestParam(defaultValue = "5") int topN) {
         List<UserFoodRating> allRecords = userFoodRatingService.getAllRecords();
         Map<Integer, Map<Integer, Double>> userItemMatrix = foodRecommendService.buildUserItemMatrix(allRecords);
         Map<Integer, Map<Integer, Double>> similarityMatrix = foodRecommendService.calculateSimilarity(userItemMatrix);
-
         return foodRecommendService.recommend(userId, userItemMatrix, similarityMatrix, topN);
     }
 

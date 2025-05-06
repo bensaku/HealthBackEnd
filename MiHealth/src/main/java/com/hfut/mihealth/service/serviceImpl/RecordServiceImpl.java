@@ -12,6 +12,7 @@ import com.hfut.mihealth.entity.Record;
 import com.hfut.mihealth.mapper.RecordMapper;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Date;
@@ -152,6 +153,38 @@ public class RecordServiceImpl implements RecordService {
         }
 
         return weekNutrientTotals;
+    }
+
+    @Override
+    public Map<String, Double> getWeekValue(Integer userId, LocalDate date) {
+        // 获取一周记录
+        Map<LocalDate, Map<String, Double>> weekRecords = getWeekRecords(userId, date);
+
+        // 创建一个Map用于存储一周内每个营养成分的总和
+        Map<String, Double> weekNutrientSum = new HashMap<>();
+
+        // 遍历一周中的每一天
+        for (Map<String, Double> dailyNutrients : weekRecords.values()) {
+            // 对于每一天的营养成分
+            for (Map.Entry<String, Double> entry : dailyNutrients.entrySet()) {
+                // 使用 BigDecimal 进行精确相加并保留两位小数
+                BigDecimal value = new BigDecimal(entry.getValue());
+                weekNutrientSum.merge(
+                        entry.getKey(),
+                        value.doubleValue(),
+                        (existing, replacement) -> new BigDecimal(existing).add(new BigDecimal(replacement)).doubleValue()
+                );
+            }
+        }
+
+        // 最终再遍历一次，确保所有结果都保留两位小数
+        Map<String, Double> result = new HashMap<>();
+        for (Map.Entry<String, Double> entry : weekNutrientSum.entrySet()) {
+            BigDecimal roundedValue = BigDecimal.valueOf(entry.getValue()).setScale(2, RoundingMode.HALF_UP);
+            result.put(entry.getKey(), roundedValue.doubleValue());
+        }
+
+        return result;
     }
 
     /**

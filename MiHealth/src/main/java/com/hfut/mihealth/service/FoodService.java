@@ -63,4 +63,6 @@ public interface FoodService {
      * @return
      */
     public List<String> getFoodName();
+
+    public String getFoodNameById(Integer integer);
 }

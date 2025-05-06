@@ -70,4 +70,6 @@ public interface RecordService {
      * @return
      */
     public Map<LocalDate, Map<String, Double>> getWeekRecords(Integer userId, LocalDate date);
+
+    public Map<String,Double> getWeekValue(Integer userId, LocalDate date);
 }

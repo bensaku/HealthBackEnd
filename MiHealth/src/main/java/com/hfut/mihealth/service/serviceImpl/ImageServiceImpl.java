@@ -2,8 +2,6 @@ package com.hfut.mihealth.service.serviceImpl;
 
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hfut.mihealth.DTO.Translation;
 import com.hfut.mihealth.entity.Image;
 import com.hfut.mihealth.mapper.ImageMapper;
 import com.hfut.mihealth.service.ImageService;
