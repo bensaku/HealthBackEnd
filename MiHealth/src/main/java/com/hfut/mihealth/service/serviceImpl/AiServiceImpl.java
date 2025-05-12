@@ -42,7 +42,7 @@ public class AiServiceImpl implements AiService {
 
         webClient.post()
                 .uri("/workflows/run")
-                .header("Authorization", "Bearer app-AW4TIX2Ey6sdvNMuz01KUcvl")
+                .header("Authorization", "Bearer app-G53jIdYITi2gP5eHHlpI1QRT")
                 .contentType(MediaType.valueOf(MediaType.APPLICATION_JSON_VALUE))
                 //.bodyValue(request)
                 .body(BodyInserters.fromValue(body))// 设置请求体

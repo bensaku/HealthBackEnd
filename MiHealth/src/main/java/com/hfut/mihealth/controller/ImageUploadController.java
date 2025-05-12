@@ -29,7 +29,7 @@ import java.util.Map;
 
 @RestController
 public class ImageUploadController {
-    private static final String UPLOAD_DIR = "/Users/wangke/myFile/uploads/";
+    public static final String UPLOAD_DIR = "D:/project/uploads/";
 
     private final WebClient webClient;
 
@@ -45,8 +45,7 @@ public class ImageUploadController {
     public ResponseEntity<String> updateAIData(@RequestParam("foodInfo") String foodInfo,
                                                @RequestParam("imageId") int imageId) {
         if (foodInfo == null) {
-            //AI识别出错了
-            foodInfo = "bread";
+            return ResponseEntity.badRequest().body("<UNK>");
         }
         ObjectMapper objectMapper = new ObjectMapper();
         String foodName = null;
@@ -138,7 +137,7 @@ public class ImageUploadController {
 
         webClient.post()
                 .uri("/workflows/run")
-                .header("Authorization", "Bearer app-VWdn4vVz8oyJ22R2tb9mZmwp")
+                .header("Authorization", "Bearer app-NTIUTFdaLsytCpWLxvPm9jOA")
                 .contentType(MediaType.valueOf(MediaType.APPLICATION_JSON_VALUE))
                 //.bodyValue(request)
                 .body(BodyInserters.fromValue(body))// 设置请求体

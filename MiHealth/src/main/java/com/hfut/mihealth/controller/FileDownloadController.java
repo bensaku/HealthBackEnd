@@ -15,9 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.hfut.mihealth.controller.ImageUploadController.UPLOAD_DIR;
+
 @Controller
 public class FileDownloadController {
-    private static final String UPLOAD_DIR = "/Users/wangke/myFile/uploads/";
+
 
     @GetMapping("/images/{filename}")
     public ResponseEntity<FileSystemResource> getImage(@PathVariable String filename) {
