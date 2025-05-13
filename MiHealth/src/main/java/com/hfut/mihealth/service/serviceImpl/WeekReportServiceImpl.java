@@ -7,6 +7,8 @@ import com.hfut.mihealth.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -38,6 +40,7 @@ public class WeekReportServiceImpl implements WeekReportService {
     /**
      * 获取周报。如果不存在或已过期，则尝试开始生成过程。
      */
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public WeekReport getOrCreateWeekReport(Integer userId, LocalDate date) {
         LocalDate weekStartDate = date.with(DayOfWeek.MONDAY);
         ZoneId zone = ZoneId.of("Asia/Shanghai"); // 或者你需要的任何时区
